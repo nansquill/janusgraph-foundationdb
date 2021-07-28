@@ -20,6 +20,7 @@ import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.FDBException;
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.StreamingMode;
+import com.apple.foundationdb.async.AsyncIterable;
 import com.apple.foundationdb.async.AsyncIterator;
 import org.janusgraph.diskstorage.BackendException;
 import org.janusgraph.diskstorage.BaseTransactionConfig;
@@ -29,12 +30,7 @@ import org.janusgraph.diskstorage.keycolumnvalue.keyvalue.KVQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -115,6 +111,8 @@ public class FoundationDBTx extends AbstractStoreTransaction {
         // @todo Note that at this point, the large transaction case (tx exceeds 10,000,000 bytes) is not handled.
         inserts.forEach(insert -> tx.set(insert.getKey(), insert.getValue()));
         deletions.forEach(delete -> tx.clear(delete));
+        if(!inserts.isEmpty())
+            log.error("Reapplied {} inserts and {} deletions", inserts.size(), deletions.size());
     }
 
     @Override
@@ -288,9 +286,17 @@ public class FoundationDBTx extends AbstractStoreTransaction {
         for (int i = 0; i < maxRuns; i++) {
             final int startTxId = txCtr.get();
             try {
-                List<KeyValue> result =
-                    tx.getRange(query.getStartKeySelector(), query.getEndKeySelector(), query.getLimit()).asList().get();
-                return result != null ? result : Collections.emptyList();
+                if(tx != null) {
+                    AsyncIterable<KeyValue> iterables = tx.getRange(query.getStartKeySelector(), query.getEndKeySelector(), query.getLimit());
+                    if(iterables != null) {
+                        List<KeyValue> result = iterables.asList().get();
+                        return result != null ? result : Collections.emptyList();
+                    }
+                    //List<KeyValue> result =
+                    //    tx.getRange(query.getStartKeySelector(), query.getEndKeySelector(), query.getLimit()).asList().get();
+                    //return result != null ? result : Collections.emptyList();
+                }
+                return Collections.emptyList();
             } catch (ExecutionException e) {
                 log.error("getRange encountered ExecutionException: {}, with number of retries: {}", e.getMessage(), i);
 
@@ -309,10 +315,12 @@ public class FoundationDBTx extends AbstractStoreTransaction {
                 } else {
                     log.debug("getRange tx-counter: {} and start tx-id: {} not agree with each other", txCtr.get(), startTxId);
                 }
+            } catch (IllegalStateException e) {
+                log.error("getRange encountered cannotAccess: {}, with number of retries: {}", e, i);
+                throw new PermanentBackendException(e);
             } catch (Exception e) {
                 log.error("getRange encountered other exception: {}, with number of retries: {}", e.getMessage(), i);
-
-                throw new PermanentBackendException(e);
+                throw new PermanentBackendException(e); //cannot acces closed object, though tx is open
             }
         }
 

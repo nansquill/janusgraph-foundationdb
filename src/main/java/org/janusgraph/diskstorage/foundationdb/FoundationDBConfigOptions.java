@@ -45,7 +45,7 @@ public interface FoundationDBConfigOptions {
         "version",
         "The version of the FoundationDB cluster.",
         ConfigOption.Type.LOCAL,
-        620);
+        630);
 
     ConfigOption<String> CLUSTER_FILE_PATH = new ConfigOption<>(
         FDB_NS,

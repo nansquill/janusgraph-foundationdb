@@ -14,11 +14,12 @@
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <jdk.version>1.8</jdk.version>
         <janusgraph.version>0.5.2</janusgraph.version>
-        <foundationdb.version>6.2.22</foundationdb.version>
+        <foundationdb.version>6.3.15</foundationdb.version>
         <dependency.plugin.version>3.2.0</dependency.plugin.version>
         <test.skip.default>false</test.skip.default>
         <test.skip.tp>true</test.skip.tp>
         <testcontainers.version>1.15.3</testcontainers.version>
+        <log4j.version>2.13.3</log4j.version>
     </properties>
 
     <developers>
@@ -70,6 +71,21 @@
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -118,13 +134,13 @@
                         <exclude>**/*StructureTest.java</exclude>
                     </excludes>
                     <skip>${test.skip.default}</skip>
-                    <!-- Use log4j.properties from module test resources -->
+                    <!-- Use log4j.properties from module test resources
                     <systemProperties>
                         <property>
                             <name>log4j.configuration</name>
                             <value>file:${project.build.directory}/test-classes/log4j.properties</value>
                         </property>
-                    </systemProperties>
+                    </systemProperties>-->
                 </configuration>
                 <executions>
                     <execution>

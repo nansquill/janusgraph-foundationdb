@@ -36,11 +36,13 @@ import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.print.attribute.standard.MediaSize;
+
 public class FoundationDBContainer extends FixedHostPortGenericContainer<FoundationDBContainer> {
 
     private final Logger log = LoggerFactory.getLogger(FoundationDBContainer.class);
 
-    public static final String DEFAULT_IMAGE_AND_TAG = "foundationdb/foundationdb:6.2.30";
+    public static final String DEFAULT_IMAGE_AND_TAG = "foundationdb/foundationdb:6.3.15";
     private static final Integer DEFAULT_PORT = 4500;
     private static final String FDB_CLUSTER_FILE_ENV_KEY = "FDB_CLUSTER_FILE";
     private static final String FDB_NETWORKING_MODE_ENV_KEY = "FDB_NETWORKING_MODE";
@@ -126,7 +128,7 @@ public class FoundationDBContainer extends FixedHostPortGenericContainer<Foundat
             .set(CLUSTER_FILE_PATH, "target/test-classes/fdb/fdb.cluster")
             .set(ISOLATION_LEVEL, "read_committed_with_write")
             .set(GET_RANGE_MODE, getAndCheckRangeModeFromTestEnvironment())
-            .set(VERSION, 620);
+            .set(VERSION, 630);
 
         return config;
     }
