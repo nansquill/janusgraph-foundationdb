@@ -14,6 +14,7 @@
 
 package org.janusgraph.graphdb.foundationdb;
 
+import org.janusgraph.MockJanusGraphConcurrentTest;
 import org.janusgraph.diskstorage.configuration.WriteConfiguration;
 import org.janusgraph.graphdb.JanusGraphConcurrentTest;
 
@@ -27,7 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @Testcontainers
 @Disabled
-public class FoundationDBGraphConcurrentTest extends JanusGraphConcurrentTest {
+public class FoundationDBGraphConcurrentTest extends MockJanusGraphConcurrentTest {
 
     @Container
     public static FoundationDBContainer container = new FoundationDBContainer();

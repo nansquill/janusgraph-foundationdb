@@ -1,5 +1,6 @@
 package org.janusgraph;
 
+import com.apple.foundationdb.async.AsyncIterable;
 import com.google.common.collect.Iterables;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -295,10 +296,8 @@ public class MockJanusGraphConcurrentTest extends MockJanusGraphBaseTest {
     }
 
     protected void testStandardIndexVertexPropertyReadsLogic() throws InterruptedException, ExecutionException {
-        final int propCount = 100;
-        //final int propCount = MockJanusGraphConcurrentTest.THREAD_COUNT * 5;
-        final int vertexCount = 100;
-        //final int vertexCount = 1000;
+        final int propCount = MockJanusGraphConcurrentTest.THREAD_COUNT * 5;
+        final int vertexCount = 1000;
         // Create props with standard indexes
         log.info("Creating types");
         for (int i = 0; i < propCount; i++) {
@@ -495,9 +494,15 @@ public class MockJanusGraphConcurrentTest extends MockJanusGraphBaseTest {
 
         @Override
         public void run() {
+            int loopRun = 0;
             for (int i = 0; i < vertexCount; i++) {
                 for (int p = 0; p < propCount; p++) {
-                    Iterables.size(tx.query().has("p" + p, i).vertices());
+                    Iterable<JanusGraphVertex> vertices = tx.query().has("p" + p, i).vertices();
+                    loopRun++;
+                    if(loopRun < 1 && !vertices.iterator().hasNext()) {
+                        throw new IllegalStateException("Empty result iterable");
+                    }
+                    //Iterables.size(tx.query().has("p" + p, i).vertices());
                 }
             }
         }
