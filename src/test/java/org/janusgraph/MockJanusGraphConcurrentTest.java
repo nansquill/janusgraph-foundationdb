@@ -494,17 +494,22 @@ public class MockJanusGraphConcurrentTest extends MockJanusGraphBaseTest {
 
         @Override
         public void run() {
-            int loopRun = 0;
+            //int loopRun = 0;
+            HashSet<Iterable<JanusGraphVertex>> allVertices = new HashSet<>();
             for (int i = 0; i < vertexCount; i++) {
                 for (int p = 0; p < propCount; p++) {
-                    Iterable<JanusGraphVertex> vertices = tx.query().has("p" + p, i).vertices();
-                    loopRun++;
-                    if(loopRun < 1 && !vertices.iterator().hasNext()) {
-                        throw new IllegalStateException("Empty result iterable");
-                    }
+                    allVertices.add(tx.query().has("p" + p, i).vertices());
+                    //loopRun++;
+                    //if(loopRun < 1 && !vertices.iterator().hasNext()) {
+                    //    throw new IllegalStateException("Empty result iterable");
+                    //}
                     //Iterables.size(tx.query().has("p" + p, i).vertices());
                 }
             }
+            allVertices.forEach((list) -> {
+                if(!list.iterator().hasNext())
+                    log.error("List of vertices is empty");
+            });
         }
     }
 

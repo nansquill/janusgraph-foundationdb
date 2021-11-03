@@ -15,8 +15,8 @@
 package org.janusgraph.blueprints;
 
 import org.janusgraph.FoundationDBContainer;
-import org.janusgraph.diskstorage.foundationdb.FoundationDBTx;
 import org.janusgraph.diskstorage.configuration.ModifiableConfiguration;
+import org.janusgraph.diskstorage.foundationdb.FoundationDBTx;
 import org.janusgraph.graphdb.configuration.GraphDatabaseConfiguration;
 import org.janusgraph.graphdb.olap.computer.FulgoraGraphComputer;
 import org.apache.tinkerpop.gremlin.GraphProvider;

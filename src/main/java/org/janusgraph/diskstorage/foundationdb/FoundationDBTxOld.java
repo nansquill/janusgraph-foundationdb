@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**package org.janusgraph.diskstorage.foundationdb;
+package org.janusgraph.diskstorage.foundationdb;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.KeyValue;
@@ -37,9 +37,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MockFoundationDBTx extends AbstractStoreTransaction {
+/**
+ * @author Ted Wilmes (twilmes@gmail.com)
+ */
+/**
+public class FoundationDBTxOld extends AbstractStoreTransaction {
 
-    private static final Logger log = LoggerFactory.getLogger(FoundationDBTx.class);
+    private static final Logger log = LoggerFactory.getLogger(FoundationDBTxOld.class);
 
     private volatile Transaction tx;
 
@@ -59,7 +63,7 @@ public class MockFoundationDBTx extends AbstractStoreTransaction {
     private static final AtomicInteger transLocalIdCounter = new AtomicInteger(0);
     private final int transactionId;
 
-    public MockFoundationDBTx(Database db, Transaction t, BaseTransactionConfig config, IsolationLevel isolationLevel) {
+    public FoundationDBTxOld(Database db, Transaction t, BaseTransactionConfig config, IsolationLevel isolationLevel) {
         super(config);
         tx = t;
         this.db = db;
@@ -120,7 +124,7 @@ public class MockFoundationDBTx extends AbstractStoreTransaction {
             return;
         }
         if (log.isTraceEnabled())
-            log.trace("{} rolled back", this.toString(), new MockFoundationDBTx.TransactionClose(this.toString()));
+            log.trace("{} rolled back", this.toString(), new FoundationDBTxOld.TransactionClose(this.toString()));
 
         try {
             tx.cancel();
@@ -167,7 +171,7 @@ public class MockFoundationDBTx extends AbstractStoreTransaction {
                 return;
             }
             if (log.isTraceEnabled())
-                log.trace("{} committed", this.toString(), new MockFoundationDBTx.TransactionClose(this.toString()));
+                log.trace("{} committed", this.toString(), new FoundationDBTxOld.TransactionClose(this.toString()));
 
             try {
                 if (!inserts.isEmpty() || !deletions.isEmpty()) {
@@ -363,7 +367,7 @@ public class MockFoundationDBTx extends AbstractStoreTransaction {
                     final KVQuery query = q.asKVQuery();
 
                     CompletableFuture<List<KeyValue>> f = tx.getRange(q.getStartKeySelector(),
-                            q.getEndKeySelector(), query.getLimit()).asList()
+                        q.getEndKeySelector(), query.getLimit()).asList()
                         .whenComplete((res, th) -> {
                             if (th == null) {
                                 log.debug("(before) get range succeeded with current size of retries: {}, thread id: {}, tx id: {}",

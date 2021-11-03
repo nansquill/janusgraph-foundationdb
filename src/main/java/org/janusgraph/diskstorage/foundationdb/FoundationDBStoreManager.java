@@ -151,7 +151,9 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
         try {
             final Transaction tx = db.createTransaction();
 
-            final StoreTransaction fdbTx = new FoundationDBTx(db, tx, txCfg, isolationLevel);
+            FoundationDBTxManager foundationDBTxManager = new FoundationDBTxManager(db);
+
+            final StoreTransaction fdbTx = new FoundationDBTx(txCfg, foundationDBTxManager, isolationLevel);
 
             if (log.isTraceEnabled()) {
                 log.trace("FoundationDB tx created", new TransactionBegin(fdbTx.toString()));

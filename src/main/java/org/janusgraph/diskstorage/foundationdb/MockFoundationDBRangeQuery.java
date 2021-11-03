@@ -1,9 +1,10 @@
-package org.janusgraph.diskstorage.foundationdb;
+/**package org.janusgraph.diskstorage.foundationdb;
 
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.subspace.Subspace;
 import org.janusgraph.diskstorage.StaticBuffer;
 import org.janusgraph.diskstorage.keycolumnvalue.keyvalue.KVQuery;
+
 
 public class MockFoundationDBRangeQuery {
 
@@ -44,3 +45,4 @@ public class MockFoundationDBRangeQuery {
 
     public int getLimit() { return limit; }
 }
+ **/

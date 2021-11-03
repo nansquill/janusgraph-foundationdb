@@ -235,7 +235,7 @@ public class FoundationDBKeyValueStore implements OrderedKeyValueStore, AutoClos
         try {
 
             log.trace("db={}, op=insert, tx={}", name, txh);
-            tx.set(db.pack(key.as(ENTRY_FACTORY)), value.as(ENTRY_FACTORY));
+            tx.set(new org.javatuples.KeyValue<byte[], byte[]>(db.pack(key.as(ENTRY_FACTORY)), value.as(ENTRY_FACTORY)));
         } catch (Exception e) {
             log.error ("db={}, op=insert, tx={} with exception", name, txh, e);
             throw new PermanentBackendException(e);
