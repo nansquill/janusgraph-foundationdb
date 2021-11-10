@@ -154,7 +154,7 @@ public class FoundationDBTxManager {
 
     public Transaction getTx() {
         Transaction tr = createTx();
-        availableTx.add(createTx());
+        availableTx.add(tr);
         return tr;
     }
 

@@ -1,6 +1,7 @@
 package org.janusgraph.diskstorage.foundationdb;
 
 import com.apple.foundationdb.KeyValue;
+import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.async.AsyncIterator;
 import org.janusgraph.diskstorage.BackendException;
 import org.janusgraph.diskstorage.BaseTransactionConfig;
@@ -10,7 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class FoundationDBTx extends AbstractStoreTransaction {
 
@@ -57,8 +61,29 @@ public class FoundationDBTx extends AbstractStoreTransaction {
 
     public synchronized Map<KVQuery, List<KeyValue>> getMultiRange(final Collection<FoundationDBRangeQuery> queries) throws BackendException {
         Map<KVQuery, List<KeyValue>> resultMap = new ConcurrentHashMap<>();
+        final List<FoundationDBRangeQuery> copyQueries = new CopyOnWriteArrayList<>(queries);
+        final List<CompletableFuture<List<KeyValue>>> futures = new LinkedList<>();
+
         //todo fill hash map with results
-        return null;
+
+        for(FoundationDBRangeQuery rangeQuery : copyQueries) {
+            final KVQuery query = rangeQuery.asKVQuery();
+
+            Transaction tx = this.foundationDBTxManager.getTx();
+
+            futures.add(tx.getRange(rangeQuery.getStartKeySelector(), rangeQuery.getEndKeySelector(), query.getLimit()).asList().whenComplete((res, th) -> {
+                if(th == null) {
+                    copyQueries.remove(rangeQuery);
+                    resultMap.put(query, res);
+                }
+                else {
+                    resultMap.put(query, Collections.emptyList());
+                }
+            }));
+        }
+        CompletableFuture<Object> done = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+
+        return resultMap;
     }
 
     public void set(org.javatuples.KeyValue<byte[], byte[]> keyValuePair) throws BackendException {
