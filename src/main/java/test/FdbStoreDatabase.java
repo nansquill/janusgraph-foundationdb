@@ -37,6 +37,6 @@ public class FdbStoreDatabase {
         ctx.run((tx) -> {
             return tx.get(databaseKey).join();
         });
-        returnn
+        return null;
     }
 }

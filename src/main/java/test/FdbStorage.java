@@ -68,6 +68,11 @@ public class FdbStorage implements IStorage {
         }
     }
 
+    @Override
+    public StarterTx beginTransaction() throws BackendException {
+        return
+    }
+
     public FdbStoreDatabase openDatabase(String name) throws BackendException {
         Preconditions.checkNotNull(name);
         if(stores.containsKey(name)) {
