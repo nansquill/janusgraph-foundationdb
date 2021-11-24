@@ -192,11 +192,11 @@ public class FDBKeyValueStore implements OrderedKeyValueStore, AutoCloseable {
     }
 
     public Map<KVQuery,RecordIterator<KeyValueEntry>> getSlicesSync (List<KVQuery> queries, StoreTransaction txh) throws BackendException {
-
+        return null;
     }
 
     public Map<KVQuery,RecordIterator<KeyValueEntry>> getSlicesAsync (List<KVQuery> queries, StoreTransaction txh) throws BackendException {
-
+        return null;
     }
 
     @Override
