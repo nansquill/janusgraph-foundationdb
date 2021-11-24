@@ -1,6 +1,9 @@
 package correct;
 
+import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
+import com.apple.foundationdb.TransactionContext;
+import com.apple.foundationdb.async.AsyncIterator;
 import com.apple.foundationdb.directory.DirectorySubspace;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -16,19 +19,21 @@ import org.janusgraph.diskstorage.util.RecordIterator;
 import org.janusgraph.diskstorage.util.StaticArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import test.FdbUtil;
 
 import java.awt.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 public class FDBKeyValueStore implements OrderedKeyValueStore, AutoCloseable {
 
     private static final Logger log = LoggerFactory.getLogger(FDBKeyValueStore.class);
 
-    private static final StaticBuffer.Factory<byte[]> ENTRY_FACTORY = (array, offset, limit) -> {
+    public static final StaticBuffer.Factory<byte[]> ENTRY_FACTORY = (array, offset, limit) -> {
         final byte[] bArray = new byte[limit - offset];
         System.arraycopy(array, offset, bArray, 0, limit - offset);
         return bArray;
@@ -94,9 +99,37 @@ public class FDBKeyValueStore implements OrderedKeyValueStore, AutoCloseable {
         isOpen = false;
     }
 
+    public byte[] get(TransactionContext ctx, StaticBuffer key) throws BackendException {
+        byte[] tuple = key.as(FdbUtil.mutateArray);
+        byte[] databaseKey = database.pack(tuple);
+        return get(ctx, tuple);
+    }
+
+    private byte[] get(TransactionContext ctx, byte[] databaseKey) throws BackendException {
+        ctx.run((tx) -> {
+            return tx.get(databaseKey).join();
+        });
+        return null;
+    }
+
     @Override
     public StaticBuffer get(StaticBuffer key, StoreTransaction txh) throws BackendException {
-        return null;
+        Transaction tx = getTransaction(txh);
+        try {
+            byte[] databaseKey = db.pack(key.as(ENTRY_FACTORY));
+            log.trace("db={}, op=get, tx={}", name, txh);
+
+            byte[] entry = tx.get(databaseKey).get();
+            if (entry != null) {
+                return getBuffer(entry);
+            } else {
+                return null;
+            }
+        }
+        catch (Exception e) {
+            log.error("db={}, op=get, tx={} with exception", name, txh, e);
+            throw new PermanentBackendException("", e);
+        }
     }
 
     @Override
@@ -113,12 +146,57 @@ public class FDBKeyValueStore implements OrderedKeyValueStore, AutoCloseable {
 
     @Override
     public RecordIterator<KeyValueEntry> getSlice(KVQuery kvQuery, StoreTransaction txh) throws BackendException {
-        return null;
+        if(storeManager.rangeQueryIteratorMode == FDBStoreManager.RangeQueryIteratorMode.SYNC) {
+            return getSliceSync(kvQuery, txh);
+        } else {
+            return getSliceAsync(kvQuery, txh);
+        }
     }
 
     @Override
     public Map<KVQuery, RecordIterator<KeyValueEntry>> getSlices(List<KVQuery> list, StoreTransaction txh) throws BackendException {
-        return null;
+        if(storeManager.rangeQueryIteratorMode == FDBStoreManager.RangeQueryIteratorMode.SYNC) {
+            return getSlicesSync(kvQuery, txh);
+        } else {
+            return getSlicesAsync(kvQuery, txh);
+        }
+    }
+
+    public RecordIterator<KeyValueEntry> getSliceSync(KVQuery kvQuery, StoreTransaction txh) throws BackendException {
+        log.trace("beginning db={}, op=getSliceSync, tx={}", name, txh);
+        final FDBStoreTransaction tx = ((FDBStoreTransaction) txh);
+        try {
+            final List<KeyValue> result = tx.getRange(db, kvQuery);
+            log.trace("db={}, op=getSliceSync, tx={} result-count={}", name, txh, result.size());
+            return new FDBRecordIterator(db, result.iterator(), kvQuery.getKeySelector());
+        }
+        catch (Exception e) {
+            log.error("db={}, op=getSliceSync, tx={} with exception", name, txh, e);
+            throw new PermanentBackendException(e);
+        }
+    }
+
+    public RecordIterator<KeyValueEntry> getSliceAsync(KVQuery kvQuery, StoreTransaction txh) throws BackendException {
+        log.trace("beginning db={}, op=getSliceAsync, tx={}", name, txh);
+        final FDBStoreTransaction tx = ((FDBStoreTransaction) txh);
+        try {
+            final AsyncIterator<KeyValue> result = tx.getRangeIterator(db, kvQuery);
+            log.trace("db={}, op=getSliceAsync, tx={} result-count={}", name, txh, result.size());
+            return new FDBRecordAsyncIterator(db, tx, kvQuery, result, kvQuery.getKeySelector());
+        }
+        catch (Exception e) {
+            log.error("db={}, op=getSliceAsync, tx={} with exception", name, txh, e);
+            throw new PermanentBackendException(e);
+        }
+
+    }
+
+    public Map<KVQuery,RecordIterator<KeyValueEntry>> getSlicesSync (List<KVQuery> queries, StoreTransaction txh) throws BackendException {
+
+    }
+
+    public Map<KVQuery,RecordIterator<KeyValueEntry>> getSlicesAsync (List<KVQuery> queries, StoreTransaction txh) throws BackendException {
+
     }
 
     @Override
@@ -127,25 +205,33 @@ public class FDBKeyValueStore implements OrderedKeyValueStore, AutoCloseable {
     }
 
     public void insert(StaticBuffer key, StaticBuffer value, StoreTransaction txh, boolean allowOverwrite, Integer ttl) throws BackendException {
-
+        Transaction tx = getTransaction(txh);
+        try {
+            log.trace("db={}, op=insert, tx={}", name, txh);
+            tx.set(db.pack(key.as(ENTRY_FACTORY)), value.as(ENTRY_FACTORY));
+        }
+        catch(Exception e) {
+            log.error("db={}, op=insert, tx={} with exception", name, txh, e);
+            throw new PermanentBackendException(e);
+        }
     }
 
     @Override
     public void delete(StaticBuffer key, StoreTransaction txh) throws BackendException {
-
         log.trace("Deletion");
         Transaction tx = getTransaction(txh);
         try {
             log.trace("db={}, op=delete, tx={}", name, txh);
-            Object status = db.delete();
-            if(status != SUCCESS) {}
+            tx.clear(db.pack(key.as(ENTRY_FACTORY)));
         }
         catch (Exception e) {
-            throw new PermanentBackendException("Could not remove from store: " + status);
+            log.error("db={}, op=delete, tx={} with exception", name, txh, e);
+            throw new PermanentBackendException("Could not remove from store", e);
         }
     }
 
-    private static StaticBuffer getBuffer(byte[] entry) {
+
+    protected static StaticBuffer getBuffer(byte[] entry) {
         return new StaticArrayBuffer(entry);
     }
 }
