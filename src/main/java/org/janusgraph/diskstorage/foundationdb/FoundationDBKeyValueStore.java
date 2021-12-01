@@ -85,14 +85,14 @@ public class FoundationDBKeyValueStore implements OrderedKeyValueStore, AutoClos
 
     @Override
     public synchronized void close() throws BackendException {
-        try {
-            if(isOpen) {
-                db.removeIfExists(null); //todo close
-            }
-        }
-        catch (Exception e) {
-            throw new PermanentBackendException("Could not close FoundationDB transaction", e);
-        }
+        //try {
+        // if(isOpen) {
+        //        db.removeIfExists(null); //todo close
+        //    }
+        //}
+        //catch (Exception e) {
+        //    throw new PermanentBackendException("Could not close FoundationDB transaction", e);
+        //}
         if(isOpen) {
             storeManager.removeDatabase(this);
         }

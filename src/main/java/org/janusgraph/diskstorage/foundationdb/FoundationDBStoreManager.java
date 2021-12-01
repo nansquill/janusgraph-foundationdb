@@ -165,7 +165,7 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
 
             FoundationDBKeyValueStore store = new FoundationDBKeyValueStore(name, storeDb, this);
             stores.put(name, store);
-            return null;
+            return store;
         }
         catch (Exception callRightException) {
             throw new PermanentBackendException("Could not open FoundationDB data store", callRightException);
@@ -236,9 +236,9 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
 
     @Override
     public void clearStorage() throws BackendException {
-        if(!stores.isEmpty()) {
-            throw new IllegalArgumentException("Cannot delete store, since database is open: " + stores.keySet());
-        }
+        //if(!stores.isEmpty()) {
+        //    throw new IllegalArgumentException("Cannot delete store, since database is open: " + stores.keySet());
+        //}
         try {
             rootDirectory.removeIfExists(db).get();
         }
@@ -246,7 +246,7 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
             throw new PermanentBackendException("Cannot remove store from directory", e);
         }
         log.info("Removed database {} (clearStorage)", db);
-        close();
+        //close();
     }
 
     @Override

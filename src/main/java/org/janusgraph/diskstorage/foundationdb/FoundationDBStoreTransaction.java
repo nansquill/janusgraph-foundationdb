@@ -30,8 +30,8 @@ public class FoundationDBStoreTransaction extends AbstractStoreTransaction {
                                         FoundationDBStoreManager.IsolationLevel isolationLevel) {
         super(config);
 
+        tx = transaction;
         this.isolationLevel = isolationLevel;
-
     }
 
     public Transaction getTransaction() {
