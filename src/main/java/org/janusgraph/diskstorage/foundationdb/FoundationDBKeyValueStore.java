@@ -106,9 +106,7 @@ public class FoundationDBKeyValueStore implements OrderedKeyValueStore, AutoClos
     }
 
     private byte[] get(TransactionContext ctx, byte[] databaseKey) throws BackendException {
-        ctx.run((tx) -> {
-            return tx.get(databaseKey).join();
-        });
+        ctx.run((tx) -> tx.get(databaseKey).join());
         return null;
     }
 

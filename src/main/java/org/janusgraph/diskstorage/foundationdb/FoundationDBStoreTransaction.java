@@ -5,6 +5,7 @@ import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.StreamingMode;
 import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.async.AsyncIterator;
+import org.janusgraph.diskstorage.BackendException;
 import org.janusgraph.diskstorage.BaseTransactionConfig;
 import org.janusgraph.diskstorage.PermanentBackendException;
 import org.janusgraph.diskstorage.common.AbstractStoreTransaction;
@@ -24,6 +25,7 @@ public class FoundationDBStoreTransaction extends AbstractStoreTransaction {
     private static final Logger log = LoggerFactory.getLogger(FoundationDBStoreTransaction.class);
 
     private Transaction tx;
+    private final Database db;
     private final FoundationDBStoreManager.IsolationLevel isolationLevel;
 
     public FoundationDBStoreTransaction(BaseTransactionConfig config, Database database, Transaction transaction,
@@ -31,6 +33,7 @@ public class FoundationDBStoreTransaction extends AbstractStoreTransaction {
         super(config);
 
         tx = transaction;
+        db = database;
         this.isolationLevel = isolationLevel;
     }
 
@@ -39,10 +42,12 @@ public class FoundationDBStoreTransaction extends AbstractStoreTransaction {
     }
 
     public Cursor openCursor() {
-        return new Cursor(0);
+        throw new UnsupportedOperationException();
     }
 
-    public void closeCursor(Cursor cursor) {}
+    public void closeCursor(Cursor cursor) {
+        throw new UnsupportedOperationException();
+    }
 
     public List<KeyValue> getRange(FoundationDBRangeQuery rangeQuery) throws PermanentBackendException{
         try {
@@ -95,5 +100,110 @@ public class FoundationDBStoreTransaction extends AbstractStoreTransaction {
     public FoundationDBStoreManager.IsolationLevel getIsolationLevel() { return this.isolationLevel; }
 
     public void restart() {
+        if(tx != null) {
+            try {
+                tx.cancel();
+            } catch (IllegalStateException e) {
+
+            } finally {
+                try {
+                    tx.close();
+                } catch (Exception e) {
+                    log.error("Exception when closing transaction: ", e);
+                }
+            }
+        } else {
+            log.warn("In execution mode: {} and when restart transaction, encountered FDB transaction object being null",
+                isolationLevel.name());
+        }
+        tx = db.createTransaction();
+    }
+
+    @Override
+    public synchronized void rollback() throws BackendException {
+        super.rollback();
+        if(tx == null) {
+            log.warn("In execution mode: {} and when rollback, encountered FDB transaction object being null", isolationLevel.name());
+            return;
+        }
+
+        try {
+            tx.cancel();
+            tx.close();
+            tx = null;
+        } catch (Exception e) {
+            throw new PermanentBackendException(e);
+        } finally {
+            if(tx != null) {
+                try {
+                    tx.close();
+                } catch (Exception e) {
+                    log.error("Exception when closing transaction {}", e);
+                }
+                tx = null;
+            }
+        }
+    }
+
+    public byte[] get(final byte[] key) throws PermanentBackendException {
+        try {
+            return tx.get(key).get();
+        } catch (ExecutionException e) {
+            log.error("get encountered ExecutionException: {}", e.getMessage());
+            this.restart();
+        } catch (Exception e) {
+            log.error("get encountered other exception: {}", e.getMessage());
+            throw new PermanentBackendException(e);
+        }
+        return null;
+    }
+
+    public void set(final byte[] key, final byte[] value) {
+        tx.set(key, value);
+    }
+
+    public void clear(final byte[] key) {
+        tx.clear(key);
+    }
+
+    @Override
+    public synchronized void commit() throws BackendException {
+        super.commit();
+        if(tx == null) {
+            log.warn("In execution mode: {} and when commit, encountered FDB transaction object being null", isolationLevel.name());
+            return;
+        }
+        try {
+            tx.commit().get();
+            tx.close();
+            tx = null;
+        } catch (IllegalStateException | ExecutionException e) {
+            if(tx != null) {
+                try {
+                    tx.close();
+                } catch (Exception ex) {
+                    log.error("Exception when closing transaction: {} ", ex.getMessage());
+                }
+                tx = null;
+            }
+            log.error("Commit encountered exception: {}", e.getMessage());
+
+            if (isolationLevel.equals(FoundationDBStoreManager.IsolationLevel.SERIALIZABLE) ||
+                isolationLevel.equals(FoundationDBStoreManager.IsolationLevel.READ_COMMITTED_NO_WRITE)) {
+                throw new PermanentBackendException("transaction fails to commit {}", e);
+            }
+            this.restart();
+        } catch (Exception e) {
+            if(tx != null) {
+                try {
+                    tx.close();
+                } catch (Exception ex) {
+                    log.error("Exception when closing transaction: {}", ex.getMessage());
+                }
+                tx = null;
+            }
+            log.error("Commit encountered exception: {} ", e.getMessage());
+            throw new PermanentBackendException(e);
+        }
     }
 }
