@@ -57,6 +57,8 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
         initialize();
         features = new StandardStoreFeatures.Builder()
             .orderedScan(true)
+            .unorderedScan(true)
+            .cellTTL(true)
             .transactional(transactional)
             .keyConsistent(GraphDatabaseConfiguration.buildGraphConfiguration())
             .locking(true)
