@@ -1,4 +1,4 @@
-package test;
+package backup.test;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
@@ -7,15 +7,12 @@ import com.apple.foundationdb.TransactionContext;
 import com.apple.foundationdb.directory.DirectoryLayer;
 import com.apple.foundationdb.directory.DirectorySubspace;
 import com.apple.foundationdb.directory.PathUtil;
-import com.apple.foundationdb.async.AsyncUtil;
 import com.google.common.base.Preconditions;
 import org.janusgraph.diskstorage.BackendException;
 import org.janusgraph.diskstorage.PermanentBackendException;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 interface IStorage {
     StarterTx beginTransaction() throws BackendException;
@@ -70,7 +67,7 @@ public class FdbStorage implements IStorage {
 
     @Override
     public StarterTx beginTransaction() throws BackendException {
-        return
+        return null;
     }
 
     public FdbStoreDatabase openDatabase(String name) throws BackendException {

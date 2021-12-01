@@ -17,5 +17,5 @@ README.md, Apache-2.0
 DCO.txt, Apache-2.0
 pom.xml, Apache-2.0
 src/assembly/dep.xml, Apache-2.0
-src/test/resources/fdb/empty, Apache-2.0
+src/backup.test/resources/fdb/empty, Apache-2.0
 CC-BY-4.0.txt, Apache-2.0

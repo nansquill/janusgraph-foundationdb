@@ -37,7 +37,7 @@ public class FoundationDBProcessStandardSuite extends ProcessStandardSuite {
             field.setAccessible(true);
             return (Class<?>[]) ArrayUtils.removeElement((Class<?>[]) field.get(null), TraversalInterruptionTest.class);
         } catch (ReflectiveOperationException e) {
-            throw new InitializationError("Unable to create test list");
+            throw new InitializationError("Unable to create backup.test list");
         }
     }
 }

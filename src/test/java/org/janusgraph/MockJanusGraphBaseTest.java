@@ -1,6 +1,6 @@
 package org.janusgraph;
 
-    import com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
     import com.google.common.collect.Maps;
     import org.apache.tinkerpop.gremlin.structure.Edge;
     import org.apache.tinkerpop.gremlin.structure.Element;
@@ -350,7 +350,7 @@ public abstract class MockJanusGraphBaseTest implements JanusGraphBaseStoreFeatu
     public static final int DEFAULT_THREAD_COUNT = 4;
 
     public static int getThreadCount() {
-        final String s = System.getProperty("janusgraph.test.threads");
+        final String s = System.getProperty("janusgraph.backup.test.threads");
         if (null != s)
             return Integer.parseInt(s);
         else

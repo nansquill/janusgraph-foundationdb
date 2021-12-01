@@ -1,0 +1,64 @@
+// Copyright 2020 JanusGraph Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package backup;
+
+import com.apple.foundationdb.KeySelector;
+import com.apple.foundationdb.subspace.Subspace;
+
+import org.janusgraph.diskstorage.StaticBuffer;
+import org.janusgraph.diskstorage.keycolumnvalue.keyvalue.KVQuery;
+
+/**
+ * @author Florian Grieskamp
+ */
+public class FoundationDBRangeQuery {
+
+    private final KVQuery originalQuery;
+    private KeySelector startKeySelector;
+    private KeySelector endKeySelector;
+    private final int limit;
+
+    public FoundationDBRangeQuery(Subspace db, KVQuery kvQuery) {
+        originalQuery = kvQuery;
+        limit = kvQuery.getLimit();
+
+        final StaticBuffer keyStart = kvQuery.getStart();
+        final StaticBuffer keyEnd = kvQuery.getEnd();
+
+        byte[] startKey = (keyStart == null) ?
+                db.range().begin : db.pack(keyStart.as(FoundationDBKeyValueStore.ENTRY_FACTORY));
+        byte[] endKey = (keyEnd == null) ?
+                db.range().end : db.pack(keyEnd.as(FoundationDBKeyValueStore.ENTRY_FACTORY));
+
+        startKeySelector = KeySelector.firstGreaterOrEqual(startKey);
+        endKeySelector = KeySelector.firstGreaterOrEqual(endKey);
+    }
+
+    public void setStartKeySelector(KeySelector startKeySelector) {
+        this.startKeySelector = startKeySelector;
+    }
+
+    public void setEndKeySelector(KeySelector endKeySelector) {
+        this.endKeySelector = endKeySelector;
+    }
+
+    public KVQuery asKVQuery() { return originalQuery; }
+
+    public KeySelector getStartKeySelector() { return startKeySelector; }
+
+    public KeySelector getEndKeySelector() { return endKeySelector; }
+
+    public int getLimit() { return limit; }
+}

@@ -1,17 +1,3 @@
-// Copyright 2018 Expero Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package org.janusgraph.diskstorage.foundationdb;
 
 import org.janusgraph.diskstorage.configuration.ConfigNamespace;
@@ -19,12 +5,6 @@ import org.janusgraph.diskstorage.configuration.ConfigOption;
 import org.janusgraph.graphdb.configuration.GraphDatabaseConfiguration;
 import org.janusgraph.graphdb.configuration.PreInitializeConfigOptions;
 
-/**
- * Configuration options for the FoundationDB storage backend.
- * These are managed under the 'fdb' namespace in the configuration.
- *
- * @author Ted Wilmes (twilmes@gmail.com)
- */
 @PreInitializeConfigOptions
 public interface FoundationDBConfigOptions {
 
@@ -45,7 +25,7 @@ public interface FoundationDBConfigOptions {
         "version",
         "The version of the FoundationDB cluster.",
         ConfigOption.Type.LOCAL,
-        630);
+        620);
 
     ConfigOption<String> CLUSTER_FILE_PATH = new ConfigOption<>(
         FDB_NS,
@@ -62,11 +42,11 @@ public interface FoundationDBConfigOptions {
         "serializable");
 
     ConfigOption<String> GET_RANGE_MODE = new ConfigOption<>(
-            FDB_NS,
-            "get-range-mode",
-            "The mod of executing FDB getRange, either `iterator` or `list`",
-            ConfigOption.Type.LOCAL,
-            "list"
+        FDB_NS,
+        "get-range-mode",
+        "The mod of executing FDB getRange, either `iterator` or `list`",
+        ConfigOption.Type.LOCAL,
+        "list"
     );
 
 

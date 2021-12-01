@@ -36,8 +36,6 @@ import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.print.attribute.standard.MediaSize;
-
 public class FoundationDBContainer extends FixedHostPortGenericContainer<FoundationDBContainer> {
 
     private final Logger log = LoggerFactory.getLogger(FoundationDBContainer.class);
@@ -97,7 +95,7 @@ public class FoundationDBContainer extends FixedHostPortGenericContainer<Foundat
     }
 
     public ModifiableConfiguration getFoundationDBConfiguration() {
-        return getFoundationDBConfiguration("janusgraph-test-fdb");
+        return getFoundationDBConfiguration("janusgraph-backup.test-fdb");
     }
 
     private String getAndCheckRangeModeFromTestEnvironment() {
@@ -125,7 +123,8 @@ public class FoundationDBContainer extends FixedHostPortGenericContainer<Foundat
             .set(STORAGE_BACKEND,"org.janusgraph.diskstorage.foundationdb.FoundationDBStoreManager")
             .set(DIRECTORY, graphName)
             .set(DROP_ON_CLEAR, false)
-            .set(CLUSTER_FILE_PATH, "target/test-classes/fdb/fdb.cluster")
+            //.set(CLUSTER_FILE_PATH, "target/backup.test-classes/fdb/fdb.cluster")
+            .set(CLUSTER_FILE_PATH, DEFAULT_CLUSTER_FILE_PATH)
             .set(ISOLATION_LEVEL, "read_committed_with_write")
             .set(GET_RANGE_MODE, getAndCheckRangeModeFromTestEnvironment())
             .set(VERSION, 630);

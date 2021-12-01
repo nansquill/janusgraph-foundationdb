@@ -1,6 +1,5 @@
 package org.janusgraph;
 
-import com.apple.foundationdb.async.AsyncIterable;
 import com.google.common.collect.Iterables;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -276,7 +275,7 @@ public class MockJanusGraphConcurrentTest extends MockJanusGraphBaseTest {
     }
 
     /**
-     * Load-then-read test of standard-indexed vertex properties. This test
+     * Load-then-read backup.test of standard-indexed vertex properties. This backup.test
      * contains no edges.
      * <p>
      * The load stage is serial. The read stage is concurrent.

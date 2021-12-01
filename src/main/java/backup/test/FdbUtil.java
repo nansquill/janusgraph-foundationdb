@@ -1,4 +1,4 @@
-package test;
+package backup.test;
 
 import org.janusgraph.diskstorage.StaticBuffer;
 

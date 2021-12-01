@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import org.janusgraph.FoundationDBContainer;
 import org.janusgraph.diskstorage.foundationdb.FoundationDBConfigOptions;
-import org.janusgraph.diskstorage.foundationdb.FoundationDBTx.IsolationLevel;
+import org.janusgraph.diskstorage.foundationdb.FoundationDBStoreManager.IsolationLevel;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -57,14 +57,14 @@ public class FoundationDBGraphTest extends JanusGraphTest {
         String methodName = testInfo.getTestMethod().toString();
         if (methodName.equals("testConsistencyEnforcement")) {
             IsolationLevel iso = IsolationLevel.SERIALIZABLE;
-            log.debug("Forcing isolation level {} for test method {}", iso, methodName);
+            log.debug("Forcing isolation level {} for backup.test method {}", iso, methodName);
             modifiableConfiguration.set(FoundationDBConfigOptions.ISOLATION_LEVEL, iso.toString());
         } else {
             IsolationLevel iso = null;
             if (modifiableConfiguration.has(FoundationDBConfigOptions.ISOLATION_LEVEL)) {
                 iso = ConfigOption.getEnumValue(modifiableConfiguration.get(FoundationDBConfigOptions.ISOLATION_LEVEL),IsolationLevel.class);
             }
-            log.debug("Using isolation level {} (null means adapter default) for test method {}", iso, methodName);
+            log.debug("Using isolation level {} (null means adapter default) for backup.test method {}", iso, methodName);
         }
         return modifiableConfiguration.getConfiguration();
     }
@@ -81,8 +81,8 @@ public class FoundationDBGraphTest extends JanusGraphTest {
     public void testConsistencyEnforcement() {
         // Check that getConfiguration() explicitly set serializable isolation
         // This could be enforced with a JUnit assertion instead of a Precondition,
-        // but a failure here indicates a problem in the test itself rather than the
-        // system-under-test, so a Precondition seems more appropriate
+        // but a failure here indicates a problem in the backup.test itself rather than the
+        // system-under-backup.test, so a Precondition seems more appropriate
         //IsolationLevel effective = ConfigOption.getEnumValue(config.get(ConfigElement.getPath(FoundationDBStoreManager.ISOLATION_LEVEL), String.class),IsolationLevel.class);
         //Preconditions.checkState(IsolationLevel.SERIALIZABLE.equals(effective));
         super.testConsistencyEnforcement();

@@ -134,17 +134,17 @@
                         <exclude>**/*StructureTest.java</exclude>
                     </excludes>
                     <skip>${test.skip.default}</skip>
-                    <!-- Use log4j.properties from module test resources
+                    <!-- Use log4j.properties from module backup.test resources
                     <systemProperties>
                         <property>
                             <name>log4j.configuration</name>
-                            <value>file:${project.build.directory}/test-classes/log4j.properties</value>
+                            <value>file:${project.build.directory}/backup.test-classes/log4j.properties</value>
                         </property>
                     </systemProperties>-->
                 </configuration>
                 <executions>
                     <execution>
-                        <id>tinkerpop-test</id>
+                        <id>tinkerpop-backup.test</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
@@ -166,7 +166,7 @@
                             <skipTests>${test.skip.tp}</skipTests>
                             <systemPropertyVariables>
                                 <build.dir>${project.build.directory}</build.dir>
-                                <log4j.configuration>file:${project.build.directory}/test-classes/log4j.properties</log4j.configuration>
+                                <log4j.configuration>file:${project.build.directory}/backup.test-classes/log4j.properties</log4j.configuration>
                                 <is.testing>true</is.testing>
                             </systemPropertyVariables>
                         </configuration>

@@ -1,78 +1,69 @@
-// Copyright 2020 JanusGraph Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package org.janusgraph.diskstorage.foundationdb;
 
+
 import com.apple.foundationdb.KeyValue;
-import com.apple.foundationdb.subspace.Subspace;
+import com.apple.foundationdb.directory.DirectorySubspace;
 import org.janusgraph.diskstorage.StaticBuffer;
 import org.janusgraph.diskstorage.keycolumnvalue.keyvalue.KeySelector;
 import org.janusgraph.diskstorage.keycolumnvalue.keyvalue.KeyValueEntry;
 import org.janusgraph.diskstorage.util.RecordIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class FoundationDBRecordIterator implements RecordIterator<KeyValueEntry> {
-    protected final Subspace ds;
-    protected Iterator<KeyValue> entries;
-    protected final KeySelector selector;
-    // Keeping track of the entries being scanned, which is different from the selected entries returned to the caller
-    // due to selector
-    protected int fetched;
-    protected KeyValueEntry nextKeyValueEntry;
 
-    public FoundationDBRecordIterator(Subspace ds, final Iterator<KeyValue> keyValues, KeySelector selector) {
-        this.ds = ds;
+    private static final Logger log = LoggerFactory.getLogger(FoundationDBRecordIterator.class);
+
+    protected DirectorySubspace db;
+    protected Iterator<KeyValue> keyValues;
+    protected KeyValueEntry current;
+    private KeySelector selector;
+    private int fetched;
+
+    public FoundationDBRecordIterator(DirectorySubspace db, final Iterator<KeyValue> keyValues, KeySelector selector) {
+        this.db = db;
+        this.keyValues = keyValues;
         this.selector = selector;
-
-        entries = keyValues;
         fetched = 0;
-        nextKeyValueEntry = null;
+        current = null;
+    }
+
+    @Override
+    public void close() throws IOException {
+
     }
 
     @Override
     public boolean hasNext() {
-        fetchNext();
-        return (nextKeyValueEntry != null);
+        if(current == null) {
+            getNextEntry();
+        }
+        return current != null;
     }
 
     @Override
     public KeyValueEntry next() {
-        if (hasNext()) {
-            KeyValueEntry result = nextKeyValueEntry;
-            nextKeyValueEntry = null;
-            return result;
-        }
-        else {
+        if(!hasNext()) {
             throw new NoSuchElementException();
         }
+        KeyValueEntry next = current;
+        current = null;
+        return next;
     }
 
-    protected void fetchNext() {
-        while (nextKeyValueEntry == null && entries.hasNext()) {
-            KeyValue kv = entries.next();
+    protected void getNextEntry() {
+        while(current == null && keyValues.hasNext()) {
+            KeyValue kv = keyValues.next();
             fetched++;
-            StaticBuffer key = FoundationDBKeyValueStore.getBuffer(ds.unpack(kv.getKey()).getBytes(0));
-            if (selector.include(key)) {
-                nextKeyValueEntry = new KeyValueEntry (key, FoundationDBKeyValueStore.getBuffer(kv.getValue()));
+            StaticBuffer key = FoundationDBKeyValueStore.getBuffer(db.unpack(kv.getKey()).getBytes(0));
+            if(selector.include(key)) {
+                current = new KeyValueEntry(key, FoundationDBKeyValueStore.getBuffer(kv.getValue()));
             }
         }
-    }
-
-    @Override
-    public void close() {
     }
 
     @Override
