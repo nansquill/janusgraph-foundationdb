@@ -72,6 +72,8 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
     protected final String rootDirectoryName;
     protected final FoundationDBTx.IsolationLevel isolationLevel;
 
+    public static FoundationDBLogicalTx logicalTx = null;
+
     public FoundationDBStoreManager(Configuration configuration) throws BackendException {
         super(configuration);
         stores = new ConcurrentHashMap<>();
@@ -96,6 +98,8 @@ public class FoundationDBStoreManager extends AbstractStoreManager implements Or
             default:
                 throw new PermanentBackendException("Unrecognized isolation level " + isolationLevelStr);
         }
+
+        FoundationDBStoreManager.logicalTx = new FoundationDBLogicalTx(db);
 
         log.info("Isolation level is set to {}", isolationLevel.toString());
 

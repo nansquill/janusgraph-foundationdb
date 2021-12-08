@@ -162,6 +162,9 @@ public class FoundationDBTx extends AbstractStoreTransaction {
 
     @Override
     public synchronized void commit() throws BackendException {
+        int res = FoundationDBStoreManager.logicalTx.registerTransaction(this, inserts, deletions);
+        if(res != 0) {}
+        /**
         boolean failing = true;
         int counter = 0;
 
@@ -244,6 +247,7 @@ public class FoundationDBTx extends AbstractStoreTransaction {
             //    throw new PermanentBackendException("Max transaction reset count exceeded");
             throw new PermanentBackendException("transaction fails to commit with max transaction reset count exceeded");
         }
+        **/
     }
 
 
@@ -448,7 +452,7 @@ public class FoundationDBTx extends AbstractStoreTransaction {
     }
 
 
-    private class Insert {
+    public class Insert {
         private final byte[] key;
         private final byte[] value;
 
