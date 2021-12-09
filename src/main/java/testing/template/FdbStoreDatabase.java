@@ -1,4 +1,4 @@
-package backup.test;
+package testing.template;
 
 import com.apple.foundationdb.TransactionContext;
 import com.apple.foundationdb.directory.DirectorySubspace;

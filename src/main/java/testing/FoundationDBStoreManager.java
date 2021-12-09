@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package backup;
+package testing;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
@@ -44,11 +44,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
-import static backup.FoundationDBConfigOptions.CLUSTER_FILE_PATH;
-import static backup.FoundationDBConfigOptions.DIRECTORY;
-import static backup.FoundationDBConfigOptions.ISOLATION_LEVEL;
-import static backup.FoundationDBConfigOptions.VERSION;
-import static backup.FoundationDBConfigOptions.GET_RANGE_MODE;
+import static testing.FoundationDBConfigOptions.CLUSTER_FILE_PATH;
+import static testing.FoundationDBConfigOptions.DIRECTORY;
+import static testing.FoundationDBConfigOptions.ISOLATION_LEVEL;
+import static testing.FoundationDBConfigOptions.VERSION;
+import static testing.FoundationDBConfigOptions.GET_RANGE_MODE;
 import static org.janusgraph.graphdb.configuration.GraphDatabaseConfiguration.GRAPH_NAME;
 
 /**

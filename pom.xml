@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.janusgraph</groupId>
@@ -134,17 +134,17 @@
                         <exclude>**/*StructureTest.java</exclude>
                     </excludes>
                     <skip>${test.skip.default}</skip>
-                    <!-- Use log4j.properties from module backup.test resources
+                    <!-- Use log4j.properties from module test resources -->
                     <systemProperties>
                         <property>
                             <name>log4j.configuration</name>
-                            <value>file:${project.build.directory}/backup.test-classes/log4j.properties</value>
+                            <value>file:${project.build.directory}/test-classes/log4j.properties</value>
                         </property>
-                    </systemProperties>-->
+                    </systemProperties>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>tinkerpop-backup.test</id>
+                        <id>tinkerpop-test</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
@@ -166,7 +166,7 @@
                             <skipTests>${test.skip.tp}</skipTests>
                             <systemPropertyVariables>
                                 <build.dir>${project.build.directory}</build.dir>
-                                <log4j.configuration>file:${project.build.directory}/backup.test-classes/log4j.properties</log4j.configuration>
+                                <log4j.configuration>file:${project.build.directory}/test-classes/log4j.properties</log4j.configuration>
                                 <is.testing>true</is.testing>
                             </systemPropertyVariables>
                         </configuration>

@@ -1,4 +1,4 @@
-package backup.test;
+package testing.template;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 interface IStorage {
-    StarterTx beginTransaction() throws BackendException;
+    FdbTx beginTransaction() throws BackendException;
     FdbStoreDatabase openDatabase(String name) throws BackendException;
     void removeDatabase(FdbStoreDatabase storeDatabase);
     void close() throws BackendException;
@@ -49,7 +49,7 @@ public class FdbStorage implements IStorage {
     }
 
 
-    public StarterTx beginTransaction(TransactionContext ctx) throws BackendException {
+    public FdbTx beginTransaction(TransactionContext ctx) throws BackendException {
         ctx.run((tr) -> {
             return null;
         });
@@ -58,7 +58,7 @@ public class FdbStorage implements IStorage {
 
         try {
             final Transaction tx = database.createTransaction();
-            StarterTx fdbTx = new StarterTx(tx);
+            FdbTx fdbTx = new FdbTx(tx);
             return fdbTx;
         } catch (Exception exception) {
             throw new PermanentBackendException(exception);
@@ -66,7 +66,7 @@ public class FdbStorage implements IStorage {
     }
 
     @Override
-    public StarterTx beginTransaction() throws BackendException {
+    public FdbTx beginTransaction() throws BackendException {
         return null;
     }
 

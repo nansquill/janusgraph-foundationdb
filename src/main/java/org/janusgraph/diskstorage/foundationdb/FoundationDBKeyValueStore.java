@@ -19,7 +19,7 @@ import org.janusgraph.diskstorage.util.RecordIterator;
 import org.janusgraph.diskstorage.util.StaticArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import backup.test.FdbUtil;
+import testing.template.FdbUtil;
 
 import java.awt.*;
 import java.time.Duration;
@@ -85,14 +85,6 @@ public class FoundationDBKeyValueStore implements OrderedKeyValueStore, AutoClos
 
     @Override
     public synchronized void close() throws BackendException {
-        //try {
-        // if(isOpen) {
-        //        db.removeIfExists(null); //todo close
-        //    }
-        //}
-        //catch (Exception e) {
-        //    throw new PermanentBackendException("Could not close FoundationDB transaction", e);
-        //}
         if(isOpen) {
             storeManager.removeDatabase(this);
         }
@@ -113,6 +105,21 @@ public class FoundationDBKeyValueStore implements OrderedKeyValueStore, AutoClos
     @Override
     public StaticBuffer get(StaticBuffer key, StoreTransaction txh) throws BackendException {
         Transaction tx = getTransaction(txh);
+        tx.runAsync(tr -> {
+            byte[] databaseKey = db.pack(key.as(ENTRY_FACTORY));
+            log.trace("db={}, op=get, tx={}", name, txh);
+            return tx.get(databaseKey);
+        }).handleAsync((entry, e) -> {
+            if (entry != null) {
+                return getBuffer( entry);
+            } else if(e != null) {
+                log.error("db={}, op=get, tx={} with exception", name, txh, e);
+                return new PermanentBackendException("Could not read from store", e);
+            } else {
+                return null;
+            }
+        });
+
         try {
             byte[] databaseKey = db.pack(key.as(ENTRY_FACTORY));
             log.trace("db={}, op=get, tx={}", name, txh);
@@ -236,28 +243,28 @@ public class FoundationDBKeyValueStore implements OrderedKeyValueStore, AutoClos
 
     public void insert(StaticBuffer key, StaticBuffer value, StoreTransaction txh, boolean allowOverwrite, Integer ttl) throws BackendException {
         Transaction tx = getTransaction(txh);
-        try {
+        tx.runAsync(tr -> {
             log.trace("db={}, op=insert, tx={}", name, txh);
             tx.set(db.pack(key.as(ENTRY_FACTORY)), value.as(ENTRY_FACTORY));
-        }
-        catch(Exception e) {
+            return null;
+        }).exceptionally(e -> {
             log.error("db={}, op=insert, tx={} with exception", name, txh, e);
-            throw new PermanentBackendException(e);
-        }
+            return new PermanentBackendException("Could not insert into store", e);
+        });
     }
 
     @Override
     public void delete(StaticBuffer key, StoreTransaction txh) throws BackendException {
         log.trace("Deletion");
         Transaction tx = getTransaction(txh);
-        try {
+        tx.runAsync(tr -> {
             log.trace("db={}, op=delete, tx={}", name, txh);
             tx.clear(db.pack(key.as(ENTRY_FACTORY)));
-        }
-        catch (Exception e) {
+            return null;
+        }).exceptionally(e -> {
             log.error("db={}, op=delete, tx={} with exception", name, txh, e);
-            throw new PermanentBackendException("Could not remove from store", e);
-        }
+            return new PermanentBackendException("Could not remove from store", e);
+        });
     }
 
 
