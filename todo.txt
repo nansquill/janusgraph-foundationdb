@@ -1,0 +1,6 @@
+Not ready to merge! This issue is about to develop a solution to test failing case in foundationdb adapter repo for
+Janusgraph. Code changes followed idea to collect data from janusgraph instance about to change inside store and manage
+transactions to not become old during commit. Higher-level transaction instance should take care about saving up actions
+and run them without exceptions and not violating fdb store rules.
+ToDo: Still need to find a solution, that does not end exceptionally and delivers at least same results as original solution
+
